@@ -3,6 +3,8 @@ import numpy as np
 from PIL import Image
 import tensorflow as tf
 import pickle
+import os
+import gdown
 
 # Configuración de la página
 st.set_page_config(
@@ -11,10 +13,16 @@ st.set_page_config(
     layout="centered"
 )
 
-# Cargar modelo y label encoder
+# Descargar modelo desde Google Drive si no existe
+MODEL_PATH = 'baseline_cnn.h5'
+FILE_ID = '1-YXxmAwlLF6tfSeiRLOn2oq7bOptOYPs'
+
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model('baseline_cnn.h5')
+    if not os.path.exists(MODEL_PATH):
+        with st.spinner('Descargando modelo... (primera vez, puede tardar un momento)'):
+            gdown.download(f'https://drive.google.com/uc?id={FILE_ID}', MODEL_PATH, quiet=False)
+    model = tf.keras.models.load_model(MODEL_PATH)
     with open('label_encoder.pkl', 'rb') as f:
         le = pickle.load(f)
     return model, le
@@ -44,7 +52,6 @@ st.markdown("Sube una imagen termográfica de un módulo fotovoltaico para detec
 uploaded_file = st.file_uploader("Selecciona una imagen", type=['jpg', 'jpeg', 'png'])
 
 if uploaded_file is not None:
-    # Mostrar imagen
     img = Image.open(uploaded_file)
     col1, col2 = st.columns(2)
     with col1:
